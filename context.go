@@ -21,6 +21,8 @@ type Context struct {
 
 	handlers []HandlerFunc //middleware
 	index    int
+
+	launcher *Launcher
 }
 
 func (c *Context) Param(key string) string {
@@ -83,8 +85,15 @@ func (c *Context) Data(code int, data []byte) {
 	c.Writer.Write(data)
 }
 
-func (c *Context) HTML(code int, html string) {
+func (c *Context) Fail(code int, err string) {
+	c.index = len(c.handlers)
+	c.JSON(code, H{"message": err})
+}
+
+func (c *Context) HTML(code int, name string, data interface{}) {
 	c.SetHeader("Content-Type", "text/html")
 	c.Status(code)
-	c.Writer.Write([]byte(html))
+	if err := c.launcher.htmlTemplates.ExecuteTemplate(c.Writer, name, data); err != nil {
+		c.Fail(500, err.Error())
+	}
 }

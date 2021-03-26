@@ -2,7 +2,7 @@ package goweb
 
 import "strings"
 
-//support ":name" and "*filepath"
+//support ":name" 、 "*filepath"
 
 type node struct {
 	pattern  string

@@ -1,7 +1,9 @@
 package goweb
 
 import (
+	"html/template"
 	"net/http"
+	"path"
 	"strings"
 )
 
@@ -12,7 +14,9 @@ type HandlerFunc func(*Context)
 type Launcher struct {
 	router *router
 	*RouterGroup
-	groups []*RouterGroup //store all RouterGroups
+	groups        []*RouterGroup //store all RouterGroups
+	htmlTemplates *template.Template
+	funcMap       template.FuncMap
 }
 
 type RouterGroup struct {
@@ -27,6 +31,14 @@ func New() *Launcher {
 	launcher.RouterGroup = &RouterGroup{launcher: launcher}
 	launcher.groups = []*RouterGroup{launcher.RouterGroup}
 	return launcher
+}
+
+func (l *Launcher) SetFuncMap(funcMap template.FuncMap) {
+	l.funcMap = funcMap
+}
+
+func (l *Launcher) LoadHTMLGlob(pattern string) {
+	l.htmlTemplates = template.Must(template.New("").Funcs(l.funcMap).ParseGlob(pattern))
 }
 
 //create a new RouterGroup
@@ -58,6 +70,29 @@ func (group *RouterGroup) POST(pattern string, handler HandlerFunc) {
 	group.addRoute("POST", pattern, handler)
 }
 
+// create static handler
+func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
+	absolutePath := path.Join(group.prefix, relativePath)
+	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
+	return func(c *Context) {
+		file := c.Param("filepath")
+		if _, err := fs.Open(file); err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+
+		fileServer.ServeHTTP(c.Writer, c.Req)
+	}
+}
+
+// serve static files
+func (group *RouterGroup) Static(relativePath string, root string) {
+	handler := group.createStaticHandler(relativePath, http.Dir(root))
+	urlPattern := path.Join(relativePath, "/*filepath")
+	// Register GET handlers
+	group.GET(urlPattern, handler)
+}
+
 func (l *Launcher) addRoute(method string, pattern string, handler HandlerFunc) {
 	l.router.addRoute(method, pattern, handler)
 }
@@ -86,5 +121,6 @@ func (l *Launcher) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	c := newContext(w, req)
 	c.handlers = middlewares
+	c.launcher = l
 	l.router.handle(c)
 }
