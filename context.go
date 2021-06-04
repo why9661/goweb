@@ -18,16 +18,11 @@ type Context struct {
 	// response info
 	StatusCode int
 	Params     map[string]string
-
-	handlers []HandlerFunc //middleware
+	//middleware
+	handlers []HandlerFunc
 	index    int
 
 	launcher *Launcher
-}
-
-func (c *Context) Param(key string) string {
-	value, _ := c.Params[key]
-	return value
 }
 
 func newContext(w http.ResponseWriter, req *http.Request) *Context {
@@ -38,6 +33,11 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 		Method: req.Method,
 		index:  -1,
 	}
+}
+
+func (c *Context) Param(key string) string {
+	value, _ := c.Params[key]
+	return value
 }
 
 func (c *Context) Next() {

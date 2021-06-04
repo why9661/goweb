@@ -7,10 +7,9 @@ import (
 	"strings"
 )
 
-// HandlerFunc defines the request handler used by gee
 type HandlerFunc func(*Context)
 
-// Engine implement the interface of ServeHTTP
+// Launcher implement the interface of ServeHTTP
 type Launcher struct {
 	router *router
 	*RouterGroup
