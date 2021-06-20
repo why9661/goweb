@@ -21,7 +21,6 @@ type Launcher struct {
 type RouterGroup struct {
 	prefix      string
 	middlewares []HandlerFunc
-	parant      *RouterGroup
 	launcher    *Launcher // all RouterGroups share one launcher
 }
 
@@ -45,7 +44,6 @@ func (group *RouterGroup) Group(prefix string) *RouterGroup {
 	launcher := group.launcher
 	newGroup := &RouterGroup{
 		launcher: launcher,
-		parant:   group,
 		prefix:   group.prefix + prefix,
 	}
 	launcher.groups = append(launcher.groups, newGroup)
