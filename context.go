@@ -90,10 +90,8 @@ func (c *Context) Fail(code int, err string) {
 	c.JSON(code, H{"message": err})
 }
 
-func (c *Context) HTML(code int, name string, data interface{}) {
+func (c *Context) HTML(code int, html string) {
 	c.SetHeader("Content-Type", "text/html")
 	c.Status(code)
-	if err := c.launcher.htmlTemplates.ExecuteTemplate(c.Writer, name, data); err != nil {
-		c.Fail(500, err.Error())
-	}
+	c.Writer.Write([]byte(html))
 }

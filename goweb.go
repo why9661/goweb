@@ -1,7 +1,7 @@
 package goweb
 
 import (
-	"html/template"
+	"github.com/why9661/goweb/middlewares"
 	"net/http"
 	"path"
 	"strings"
@@ -13,9 +13,7 @@ type HandlerFunc func(*Context)
 type Launcher struct {
 	router *router
 	*RouterGroup
-	groups        []*RouterGroup //store all RouterGroups
-	htmlTemplates *template.Template
-	funcMap       template.FuncMap
+	groups []*RouterGroup //store all RouterGroups
 }
 
 type RouterGroup struct {
@@ -31,12 +29,11 @@ func New() *Launcher {
 	return launcher
 }
 
-func (l *Launcher) SetFuncMap(funcMap template.FuncMap) {
-	l.funcMap = funcMap
-}
-
-func (l *Launcher) LoadHTMLGlob(pattern string) {
-	l.htmlTemplates = template.Must(template.New("").Funcs(l.funcMap).ParseGlob(pattern))
+func Default() *Launcher {
+	launcher := New()
+	launcher.Use(middlewares.Logger())
+	launcher.Use(middlewares.Recovery())
+	return launcher
 }
 
 //create a new RouterGroup
