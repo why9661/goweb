@@ -2,15 +2,15 @@ package middlewares
 
 import (
 	"fmt"
-	"github.com/why9661/goweb"
+	"github.com/why9661/ggin"
 	"log"
 	"net/http"
 	"runtime"
 	"strings"
 )
 
-func Recovery() goweb.HandlerFunc {
-	return func(c *goweb.Context) {
+func Recovery() ggin.HandlerFunc {
+	return func(c *ggin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				message := fmt.Sprintf("%s", err)

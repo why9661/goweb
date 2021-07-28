@@ -1,4 +1,4 @@
-package goweb
+package ggin
 
 import (
 	"log"
@@ -7,7 +7,8 @@ import (
 )
 
 type router struct {
-	roots    map[string]*node //each method has its own trie
+	//each method has its own trie
+	roots    map[string]*node
 	handlers map[string]HandlerFunc
 }
 
@@ -19,9 +20,9 @@ func newRouter() *router {
 }
 
 func parsePattern(pattern string) []string {
-	vs := strings.Split(pattern, "/")
+	splited := strings.Split(pattern, "/")
 	parts := make([]string, 0)
-	for _, item := range vs {
+	for _, item := range splited {
 		if item != "" {
 			parts = append(parts, item)
 			if item[0] == '*' {
@@ -42,7 +43,7 @@ func (r *router) addRoute(method string, pattern string, handler HandlerFunc) {
 	}
 	r.roots[method].insert(pattern, parts, 0)
 	r.handlers[key] = handler
-	log.Printf("Route %4s - %s", method, pattern)
+	log.Printf("Add Route %4s - %s\n", method, pattern)
 }
 
 func (r *router) getRoute(method string, pattern string) (*node, map[string]string) {

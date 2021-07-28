@@ -1,8 +1,6 @@
-package goweb
+package ggin
 
 import "strings"
-
-//support ":name" 、 "*filepath"
 
 type node struct {
 	pattern  string
