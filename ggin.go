@@ -1,7 +1,7 @@
 package ggin
 
 import (
-	"github.com/why9661/ggin/middlewares"
+	"html/template"
 	"net/http"
 	"strings"
 )
@@ -10,9 +10,11 @@ type HandlerFunc func(*Context)
 
 // Engine implement the interface of ServeHTTP
 type Engine struct {
-	router *router
 	*RouterGroup
-	groups []*RouterGroup //store all RouterGroups
+	router        *router
+	groups        []*RouterGroup
+	htmlTemplates *template.Template
+	funcMap       template.FuncMap
 }
 
 func New() *Engine {
@@ -24,39 +26,47 @@ func New() *Engine {
 
 func Default() *Engine {
 	engine := New()
-	engine.Use(middlewares.Logger())
-	engine.Use(middlewares.Recovery())
+	engine.Use(Logger())
+	engine.Use(Recovery())
 	return engine
 }
 
-func (l *Engine) addRoute(method string, pattern string, handler HandlerFunc) {
-	l.router.addRoute(method, pattern, handler)
+func (engine *Engine) addRoute(method string, pattern string, handler HandlerFunc) {
+	engine.router.addRoute(method, pattern, handler)
 }
 
 // GET defines the method to add GET request
-func (l *Engine) GET(pattern string, handler HandlerFunc) {
-	l.addRoute("GET", pattern, handler)
+func (engine *Engine) GET(pattern string, handler HandlerFunc) {
+	engine.addRoute("GET", pattern, handler)
 }
 
 // POST defines the method to add POST request
-func (l *Engine) POST(pattern string, handler HandlerFunc) {
-	l.addRoute("POST", pattern, handler)
+func (engine *Engine) POST(pattern string, handler HandlerFunc) {
+	engine.addRoute("POST", pattern, handler)
+}
+
+func (engine *Engine) SetFuncMap(funcMap template.FuncMap) {
+	engine.funcMap = funcMap
+}
+
+func (engine *Engine) LoadHTMLGlob(pattern string) {
+	engine.htmlTemplates = template.Must(template.New("").Funcs(engine.funcMap).ParseGlob(pattern))
 }
 
 // Run defines the method to start a http server
-func (l *Engine) Run(addr string) (err error) {
-	return http.ListenAndServe(addr, l)
+func (engine *Engine) Run(addr string) (err error) {
+	return http.ListenAndServe(addr, engine)
 }
 
-func (l *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var middlewares []HandlerFunc
-	for _, group := range l.groups {
+	for _, group := range engine.groups {
 		if strings.HasPrefix(req.URL.Path, group.prefix) {
 			middlewares = append(middlewares, group.middlewares...)
 		}
 	}
 	c := newContext(w, req)
 	c.handlers = middlewares
-	c.engine = l
-	l.router.handle(c)
+	c.engine = engine
+	engine.router.handle(c)
 }
