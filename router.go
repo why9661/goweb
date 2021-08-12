@@ -7,7 +7,7 @@ import (
 )
 
 type router struct {
-	//each method has its own trie
+	//Each method has its own trie
 	roots    map[string]*node
 	handlers map[string]HandlerFunc
 }

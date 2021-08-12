@@ -8,7 +8,6 @@ import (
 
 type HandlerFunc func(*Context)
 
-// Engine implement the interface of ServeHTTP
 type Engine struct {
 	*RouterGroup
 	router        *router
@@ -53,7 +52,6 @@ func (engine *Engine) LoadHTMLGlob(pattern string) {
 	engine.htmlTemplates = template.Must(template.New("").Funcs(engine.funcMap).ParseGlob(pattern))
 }
 
-// Run defines the method to start a http server
 func (engine *Engine) Run(addr string) (err error) {
 	return http.ListenAndServe(addr, engine)
 }

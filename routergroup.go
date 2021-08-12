@@ -8,10 +8,10 @@ import (
 type RouterGroup struct {
 	prefix      string
 	middlewares []HandlerFunc
-	engine      *Engine // all RouterGroups share one engine
+	engine      *Engine // All RouterGroups share one engine
 }
 
-//create a new RouterGroup
+// Create a new RouterGroup
 func (group *RouterGroup) Group(prefix string) *RouterGroup {
 	engine := group.engine
 	newGroup := &RouterGroup{
@@ -39,12 +39,13 @@ func (group *RouterGroup) POST(pattern string, handler HandlerFunc) {
 	group.addRoute("POST", pattern, handler)
 }
 
-// create static handler
+// Create static handler
 func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
 	absolutePath := path.Join(group.prefix, relativePath)
 	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
 	return func(c *Context) {
 		file := c.Param("filepath")
+		// Check whether the file exists
 		if _, err := fs.Open(file); err != nil {
 			c.Status(http.StatusNotFound)
 			return
@@ -54,7 +55,7 @@ func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileS
 	}
 }
 
-// serve static files
+// Serve static files
 func (group *RouterGroup) Static(relativePath string, root string) {
 	handler := group.createStaticHandler(relativePath, http.Dir(root))
 	urlPattern := path.Join(relativePath, "/*filepath")

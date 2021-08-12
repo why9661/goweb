@@ -24,7 +24,7 @@ func Recovery() HandlerFunc {
 
 func trace(message string) string {
 	var pcs [32]uintptr
-	n := runtime.Callers(3, pcs[:]) // skip first 3 caller
+	n := runtime.Callers(3, pcs[:]) // Skip first 3 caller
 
 	var str strings.Builder
 	str.WriteString(message + "\nTraceback:")
